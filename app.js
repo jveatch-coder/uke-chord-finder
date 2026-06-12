@@ -177,11 +177,11 @@ function voicingsOf(chord) {
   return [primary, ...(chord.variations || [])];
 }
 
+// Mirror the renderer exactly: a diagram drawn from the nut (baseFret 1)
+// shows no fret number, so its pill reads "Open"; anything higher shows
+// "<n>fr" — the same number the diagram prints at its top fret.
 function positionLabel(voicing) {
-  if (voicing.baseFret > 1) return `${voicing.baseFret}fr`;
-  const fretted = voicing.frets.filter(f => typeof f === 'number' && f > 0);
-  const max = fretted.length ? Math.max(...fretted) : 0;
-  return max <= 3 ? 'Open' : `${Math.min(...fretted)}fr`;
+  return voicing.baseFret > 1 ? `${voicing.baseFret}fr` : 'Open';
 }
 
 function showChord(chord, variantIndex = 0) {

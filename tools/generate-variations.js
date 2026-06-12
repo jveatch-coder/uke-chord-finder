@@ -39,21 +39,20 @@ function playability(frets) {
   return fretted.length * 2 + span * 3 + Math.max(0, ...fretted) * 0.5;
 }
 
+// Variations are CLOSED (no open strings) movable voicings, so each one
+// has an unambiguous starting fret. That keeps the position label and the
+// rendered diagram in lockstep (baseFret === lowest fret, always shown),
+// and matches the intent: real shapes that move up the neck.
 function candidates(chord) {
   const want = toneSet(chord);
   const out = [];
-  for (let a = 0; a <= MAX_FRET; a++)
-    for (let b = 0; b <= MAX_FRET; b++)
-      for (let c = 0; c <= MAX_FRET; c++)
-        for (let d = 0; d <= MAX_FRET; d++) {
+  for (let a = 1; a <= MAX_FRET; a++)
+    for (let b = 1; b <= MAX_FRET; b++)
+      for (let c = 1; c <= MAX_FRET; c++)
+        for (let d = 1; d <= MAX_FRET; d++) {
           const frets = [a, b, c, d];
-          const fretted = frets.filter(f => f > 0);
-          if (fretted.length) {
-            const span = Math.max(...fretted) - Math.min(...fretted);
-            if (span > MAX_SPAN) continue;
-            // open strings mixed with high positions are unplayable in practice
-            if (frets.some(f => f === 0) && Math.min(...fretted) > 4) continue;
-          }
+          const span = Math.max(...frets) - Math.min(...frets);
+          if (span > MAX_SPAN) continue;
           if (isValid(frets, want)) out.push(frets);
         }
   return out;
@@ -61,25 +60,22 @@ function candidates(chord) {
 
 function pickVariations(chord, all) {
   const primaryKey = chord.frets.join(',');
-  const bands = [[0, 4], [4, 8], [8, 12]];
+  // Position bands by lowest fret: low / mid / high up the neck.
+  // Start at fret 2 so every variation sits above the nut and is labeled.
+  const bands = [[2, 5], [5, 9], [9, 13]];
   const picked = [];
   for (const [lo, hi] of bands) {
     const inBand = all.filter(f => {
-      const fretted = f.filter(x => x > 0);
-      const pos = fretted.length ? Math.min(...fretted) : 0;
-      return pos >= lo && pos < hi && f.join(',') !== primaryKey &&
+      const pos = Math.min(...f);
+      return pos >= lo && pos < hi && Math.max(...f) <= MAX_FRET &&
+        f.join(',') !== primaryKey &&
         !picked.some(p => p.join(',') === f.join(','));
     });
     if (!inBand.length) continue;
     inBand.sort((x, y) => playability(x) - playability(y));
     picked.push(inBand[0]);
   }
-  return picked.map(frets => {
-    const fretted = frets.filter(f => f > 0);
-    const maxF = fretted.length ? Math.max(...fretted) : 0;
-    const minF = fretted.length ? Math.min(...fretted) : 1;
-    return { frets, baseFret: maxF > 5 ? minF : 1 };
-  });
+  return picked.map(frets => ({ frets, baseFret: Math.min(...frets) }));
 }
 
 const file = path.join(__dirname, '..', 'chords.json');

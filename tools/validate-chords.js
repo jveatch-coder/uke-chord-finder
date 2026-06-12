@@ -70,6 +70,18 @@ for (const chord of chords) {
         fails++;
         console.log(`FAIL  ${chord.name} var${i + 1} frets [${v.frets}]  missing: [${r.missing.map(pcName)}]  extra: [${r.extra.map(pcName)}]`);
       }
+      // Label/diagram consistency: variations must be closed (no open
+      // strings) and baseFret must equal the lowest fret, so the pill
+      // label always matches the number the diagram prints.
+      const hasOpen = v.frets.some(f => f === 0 || f === null || f === 'x');
+      const minF = Math.min(...v.frets.filter(f => typeof f === 'number' && f > 0));
+      if (hasOpen) {
+        fails++;
+        console.log(`FAIL  ${chord.name} var${i + 1} has an open/muted string — not a movable up-the-neck voicing`);
+      } else if (v.baseFret !== minF) {
+        fails++;
+        console.log(`FAIL  ${chord.name} var${i + 1} baseFret ${v.baseFret} != lowest fret ${minF} (label would mismatch diagram)`);
+      }
     });
   }
 }
