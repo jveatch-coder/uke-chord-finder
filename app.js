@@ -143,13 +143,42 @@ function buildGrid() {
 
 // ── Display ───────────────────────────────────────────────────────────────────
 
-function showChord(chord) {
+function voicingsOf(chord) {
+  const primary = { frets: chord.frets, baseFret: chord.baseFret || 1 };
+  return [primary, ...(chord.variations || [])];
+}
+
+function positionLabel(voicing) {
+  if (voicing.baseFret > 1) return `${voicing.baseFret}fr`;
+  const fretted = voicing.frets.filter(f => typeof f === 'number' && f > 0);
+  const max = fretted.length ? Math.max(...fretted) : 0;
+  return max <= 3 ? 'Open' : `${Math.min(...fretted)}fr`;
+}
+
+function showChord(chord, variantIndex = 0) {
   const display = document.getElementById('chord-display');
   const label = document.getElementById('chord-label');
   const diagram = document.getElementById('chord-diagram');
+  const variants = document.getElementById('chord-variants');
+
+  const voicings = voicingsOf(chord);
+  const v = voicings[variantIndex] || voicings[0];
 
   label.textContent = chord.name;
-  diagram.innerHTML = renderDiagram(chord);
+  diagram.innerHTML = renderDiagram({ ...chord, frets: v.frets, baseFret: v.baseFret });
+
+  variants.innerHTML = '';
+  if (voicings.length > 1) {
+    voicings.forEach((voicing, i) => {
+      const pill = document.createElement('button');
+      pill.className = 'variant-pill' + (i === variantIndex ? ' active' : '');
+      pill.textContent = positionLabel(voicing);
+      pill.setAttribute('aria-label', `${chord.name} voicing at ${positionLabel(voicing)}`);
+      pill.addEventListener('click', () => showChord(chord, i));
+      variants.appendChild(pill);
+    });
+  }
+
   display.hidden = false;
   display.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -166,6 +195,7 @@ function showNotFound(query) {
 
   label.textContent = `"${query}" not found`;
   diagram.innerHTML = '<p class="not-found-msg">Try a different spelling — e.g. <strong>F#m</strong>, <strong>Bbmaj7</strong>, <strong>Eb7</strong></p>';
+  document.getElementById('chord-variants').innerHTML = '';
   display.hidden = false;
 
   document.querySelectorAll('.chord-btn').forEach(b => b.classList.remove('active'));

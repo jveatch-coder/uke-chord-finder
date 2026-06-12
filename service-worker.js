@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uke-chords-v1';
+const CACHE_NAME = 'uke-chords-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -26,8 +26,18 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Network-first so deployed updates reach installed phones; cache
+// fallback keeps airplane-mode fully working. Fresh responses are
+// re-cached so the offline copy tracks the latest deploy.
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    fetch(event.request)
+      .then(res => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
