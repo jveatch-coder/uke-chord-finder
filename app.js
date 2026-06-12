@@ -215,6 +215,49 @@ function showChord(chord, variantIndex = 0) {
   document.querySelectorAll('.chord-btn').forEach(b => {
     b.classList.toggle('active', b.textContent === chord.name);
   });
+
+  if (variantIndex === 0) rememberRecent(chord.name);
+}
+
+// ── Recents ───────────────────────────────────────────────────────────────────
+// A song repeats the same handful of chords, so the last-used ones live as
+// one-tap buttons at the very top — the fastest path back to a chord you just
+// played. Persisted locally; works fully offline.
+
+const RECENTS_KEY = 'uke-recents';
+const RECENTS_MAX = 8;
+
+function loadRecents() {
+  try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; }
+  catch { return []; }
+}
+
+function rememberRecent(name) {
+  let list = loadRecents().filter(n => n !== name);
+  list.unshift(name);
+  list = list.slice(0, RECENTS_MAX);
+  try { localStorage.setItem(RECENTS_KEY, JSON.stringify(list)); } catch {}
+  renderRecents();
+}
+
+function renderRecents() {
+  const wrap = document.getElementById('recent-section');
+  const row = document.getElementById('recent-row');
+  if (!wrap || !row) return;
+  const list = loadRecents();
+  if (!list.length) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+  row.innerHTML = '';
+  list.forEach(name => {
+    const chord = findChord(name);
+    if (!chord) return;
+    const btn = document.createElement('button');
+    btn.className = 'chord-btn recent-btn';
+    btn.textContent = name;
+    btn.setAttribute('aria-label', `Show ${name} chord (recent)`);
+    btn.addEventListener('click', () => showChord(chord));
+    row.appendChild(btn);
+  });
 }
 
 function showNotFound(query) {
@@ -262,6 +305,7 @@ async function init() {
   }
 
   buildGrid();
+  renderRecents();
 
   const input = document.getElementById('chord-input');
   const form = document.getElementById('search-form');
@@ -274,7 +318,25 @@ async function init() {
 
   resolveHash();
   window.addEventListener('hashchange', resolveHash);
+  keepScreenAwake();
 }
+
+// ── Screen wake lock ────────────────────────────────────────────────────────
+// Keep the screen on while the app is open so a chord stays visible mid-song
+// without the phone dimming. Supported in installed iOS PWAs from 18.4+;
+// silently no-ops elsewhere. Re-acquires when the app returns to foreground.
+
+let wakeLock = null;
+
+async function keepScreenAwake() {
+  if (!('wakeLock' in navigator)) return;
+  try { wakeLock = await navigator.wakeLock.request('screen'); }
+  catch { /* denied (e.g. low battery) — harmless */ }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') keepScreenAwake();
+});
 
 document.addEventListener('DOMContentLoaded', init);
 
