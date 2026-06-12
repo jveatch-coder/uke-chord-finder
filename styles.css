@@ -1,0 +1,174 @@
+/* ── Reset & base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #22223b;
+  --accent: #e94560;
+  --accent2: #f5a623;
+  --text: #f0f0f0;
+  --text2: #a0a0b0;
+  --nut: #f0f0f0;
+  --dot: #e94560;
+  --string: #888;
+  --fret: #444;
+  --radius: 12px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100dvh;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+/* ── Layout ────────────────────────────────────────────────────────────────── */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+}
+
+header {
+  text-align: center;
+  padding: 20px 0 12px;
+}
+
+header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+header p {
+  color: var(--text2);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+/* ── Search ────────────────────────────────────────────────────────────────── */
+#search-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+#chord-input {
+  flex: 1;
+  background: var(--surface);
+  border: 2px solid var(--surface2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 1.2rem;
+  font-family: var(--font);
+  padding: 14px 16px;
+  outline: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s;
+}
+
+#chord-input:focus { border-color: var(--accent); }
+#chord-input::placeholder { color: var(--text2); }
+
+#search-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-size: 1.4rem;
+  padding: 0 18px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Chord display ─────────────────────────────────────────────────────────── */
+#chord-display {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+#chord-label {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--accent);
+}
+
+.chord-diagram {
+  width: 180px;
+  height: 216px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* SVG elements */
+.nut { fill: var(--nut); }
+.fret-line { stroke: var(--fret); stroke-width: 1.5; }
+.top-fret { stroke: var(--fret); stroke-width: 1.5; }
+.string-line { stroke: var(--string); stroke-width: 1.5; }
+.dot { fill: var(--dot); }
+.open-marker { fill: none; stroke: var(--text); stroke-width: 2; }
+.mute-marker { fill: var(--text2); font-size: 14px; font-family: var(--font); }
+.string-label { fill: var(--text2); font-size: 11px; font-family: var(--font); }
+.fret-label { fill: var(--text2); font-size: 11px; font-family: var(--font); }
+
+.not-found-msg {
+  color: var(--text2);
+  padding: 20px 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* ── Chord grid ────────────────────────────────────────────────────────────── */
+.grid-section { margin-bottom: 20px; }
+
+.grid-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+
+.grid-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chord-btn {
+  background: var(--surface2);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 600;
+  min-width: 52px;
+  padding: 12px 10px;
+  text-align: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.chord-btn:active { background: var(--accent); }
+.chord-btn.active { border-color: var(--accent); color: var(--accent); }
+
+/* ── Error state ───────────────────────────────────────────────────────────── */
+.error {
+  color: var(--accent);
+  text-align: center;
+  padding: 20px;
+}

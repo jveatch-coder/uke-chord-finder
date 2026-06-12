@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="UkeChords">
+  <meta name="theme-color" content="#e94560">
+  <title>Uke Chord Finder</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🎸 Uke Chord Finder</h1>
+      <p>Tenor · GCEA · Offline</p>
+    </header>
+
+    <form id="search-form" role="search">
+      <input
+        id="chord-input"
+        type="text"
+        placeholder="e.g. F#m, Bbmaj7, G7…"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="none"
+        spellcheck="false"
+        inputmode="text"
+        aria-label="Chord name"
+      >
+      <button id="search-btn" type="submit" aria-label="Find chord">→</button>
+    </form>
+
+    <div id="chord-display" hidden>
+      <div id="chord-label"></div>
+      <div id="chord-diagram"></div>
+    </div>
+
+    <div id="chord-grid" aria-label="All chords"></div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
