@@ -4,29 +4,58 @@ let chords = [];
 
 // ── Name resolver ────────────────────────────────────────────────────────────
 
-function normalize(str) {
-  return str.trim().toLowerCase()
-    .replace(/\s+/g, ' ')
+// Collapse any spoken/typed/deep-linked spelling of a chord to one compact key.
+// "F# minor", "F sharp minor", "Fsharp minor", "f#m", "F♯ minor" all → "f#m"...
+// no — all → the same key as the chord's matching alias, so the index resolves
+// them. Spaces, hyphens, and word/symbol forms of sharp·flat·seven are unified.
+function chordKey(str) {
+  return str.toLowerCase().trim()
     .replace(/♯/g, '#')
     .replace(/♭/g, 'b')
     .replace(/sharp/g, '#')
-    .replace(/flat/g, 'b');
+    .replace(/flat/g, 'b')
+    .replace(/seven/g, '7')
+    .replace(/[\s\-_.]/g, '');
 }
 
-function slugify(name) {
-  return name.toLowerCase()
-    .replace(/#/g, 'sharp')
-    .replace(/\s+/g, '');
+// Siri dictating a lone note name often returns its phonetic spelling.
+// Only used as a fallback when an exact key match fails, so it can never
+// override a correct resolution.
+const PHONETIC = {
+  see: 'c', sea: 'c', cee: 'c',
+  dee: 'd',
+  eff: 'f', ef: 'f',
+  gee: 'g', jee: 'g',
+  bee: 'b',
+  ay: 'a', eh: 'a',
+};
+
+let chordIndex = null;
+
+function buildIndex() {
+  chordIndex = new Map();
+  for (const c of chords) {
+    chordIndex.set(chordKey(c.name), c);
+    for (const a of c.aliases) chordIndex.set(chordKey(a), c);
+  }
 }
 
 function findChord(query) {
   if (!query) return null;
-  const q = normalize(query);
-  return chords.find(c => {
-    if (normalize(c.name) === q) return true;
-    if (slugify(c.name) === q.replace(/\s/g, '')) return true;
-    return c.aliases.some(a => normalize(a) === q || a === q.replace(/\s/g, ''));
-  }) || null;
+  if (!chordIndex) buildIndex();
+
+  const k = chordKey(query);
+  if (chordIndex.has(k)) return chordIndex.get(k);
+
+  // Phonetic fallback: a leading spoken letter word → its note,
+  // e.g. "gee" → "g", "see seven" → "c7", "eff sharp minor" → "f#m".
+  for (const word in PHONETIC) {
+    if (k.startsWith(word)) {
+      const alt = PHONETIC[word] + k.slice(word.length);
+      if (chordIndex.has(alt)) return chordIndex.get(alt);
+    }
+  }
+  return null;
 }
 
 // ── SVG Renderer ─────────────────────────────────────────────────────────────
